@@ -98,6 +98,7 @@ svg.selectAll('.row')
                     var id = pattern[ (r*ncol+c)%pattern.length ]['id'];
                     return "url("+id+")"
                   })
+                  .attr( 'fill-opacity', ".6")
                   
               })
 
@@ -113,7 +114,7 @@ svg.selectAll('.row')
 //Add Transition to polygons
   
 
-  d3.select( 'circle' )
+  d3.selectAll( '.cell' )
     .on( 'mouseenter', function(){
       d3.select(this)
         .attr( 'fill-opacity',1)

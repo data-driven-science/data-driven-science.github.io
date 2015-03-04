@@ -7,7 +7,7 @@
 <body>
   
 <script id="pattern" type="text/yaml">
-type: circle
+type: hexagon
 cell:
   width: 200
   height: 200
@@ -30,7 +30,8 @@ var data = jsyaml.load( d3.select('#pattern').text() );
 var cwidth = data['cell']['width'],
     cheight = data['cell']['height'],
     border = data['cell']['border'],
-    cr = cheight/2-border;
+    cr = (cwidth/2) - border, //circle
+    cr = Math.sqrt(3) * cwidth/3 - border; // hexgon
     
 
 var ncol = 14,
@@ -46,17 +47,41 @@ var currentFocus = [width / 2, height / 2],
     desiredFocus,
     idle = true;
 
-
+function d2r(d){
+  return d*(Math.PI/180);
+}
   
 function templater( t ){
   var shift = [];
   if ( t == 'circle'){
    var type= 'circle',
-       shift=[cwidth,Math.sqrt(3)*cheight/2];
+       shift=[cwidth,Math.sqrt(3)*cheight/2],
+       attr = {
+         'cx': function(c){
+                console.log('cx',c)
+                      return (c*cwidth+cwidth/2)
+                  },
+         'cy': function(c){
+                      return (cheight/2)
+                  }
+       };
+
   } else if ( t == 'hexagon')
+    t = 'polygon';
+    shift=[Math.sqrt(3)*cwidth/2,Math.sqrt(3)*cheight/2],
+    attr = {
+      'points': function(c){
+      return d3.range(6)
+               .map( function(i){ 
+                    return (cr*Math.cos( d2r( i*60 + 30) ) + (c*cwidth+cwidth/2)) +','+ (cr*Math.sin( d2r( i*60+ 30) ) + cheight/2);
+                  })
+                  .join(' ');
+      }
+    };
   return {
     'type': t,
     'shift': shift,
+    'attr':attr ,
   }
 }
 
@@ -79,7 +104,7 @@ svg = d3.select('body')
     .attr('width', width)
     // append rows
 g = svg.append('g')
-       .attr('transform','translate('+(width/2)+')');      
+       .attr('transform','translate('+(-1*width/2)+')');      
 pattern = g.append('defs') 
     .selectAll('.pattern')
     .data( data['item'] )
@@ -128,17 +153,19 @@ g.selectAll('.row')
               .data( d3.range( ncol ) )
               .call( function(s){
                 s.enter()
-                  .append( data['type']) //in the yaml
+                  .append( type['type']) //in the yaml
                   .classed('cell',true)
-                  .attr( 'cx', function(c){
-                      return (c*cwidth+cwidth/2)
+                  .each( function(c){
+                      var _this = this;
+                      d3.entries( type['attr'] )
+                        .forEach( function(kv){
+                          d3.select( _this )
+                            .attr( kv['key'], kv['value'] );
+                        })
                   })
-                  .attr( 'cy', function(c){
-                      return cheight/2
-                 })
                   .attr( 'r', function(c){
-                      return cr;
-                 })
+                        return cr;
+                   })
                   .attr( 'fill', function(c){
                     var id = pattern[ (r*ncol+c)%pattern.length ]['id'];
                     return "url("+id+")"

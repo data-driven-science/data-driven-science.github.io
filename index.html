@@ -8,6 +8,10 @@
   
 <script id="pattern" type="text/yaml">
 type: circle
+cell:
+  width: 200
+  height: 200
+  border: 5
 item:
 - img: "http://lorempixel.com/100/100"
   url: ''
@@ -20,30 +24,36 @@ item:
 <script>
 ;( function(){
 //Make SVG
+
+var data = jsyaml.load( d3.select('#pattern').text() );
   
-var cwidth = 150,
-    cheight = 150,
-    cr = cheight/2-5;
+var cwidth = data['cell']['width'],
+    cheight = data['cell']['height'],
+    border = data['cell']['border'],
+    cr = cheight/2-border;
+    
 
 var ncol = 14,
     nrow = 5;
 
 var width = ncol*cwidth,
     height = 500;
-console.log( innerWidth, width)
+
 var shift = function(r){
-  return ((r%2)==0)?0:(cwidth/2);
-}; 
+      return ((r%2)==0)?0:(cwidth/2);
+    };
 var currentFocus = [width / 2, height / 2],
     desiredFocus,
     idle = true;
+
+
   
-function typer( t ){
+function templater( t ){
   var shift = [];
   if ( t == 'circle'){
-    shift = [ cwidth, cwidth];
+   var type= 'circle',
+       shift=[cwidth,Math.sqrt(3)*cheight/2];
   } else if ( t == 'hexagon')
-    t = 'polygon';
   return {
     'type': t,
     'shift': shift,
@@ -58,16 +68,18 @@ var style = document.body.style,
           : "OTransform" in style ? "-o-"
           : "") + "transform";
   
-data = jsyaml.load( d3.select('#pattern').text() );
 
-var type = typer( data['type'] );
+
+var type = templater( data['type'] );
 
 svg = d3.select('body')
+    .style('overflow-x','hidden')
     .append('svg')
     .attr('height', height)
     .attr('width', width)
     // append rows
-g = svg.append('g');      
+g = svg.append('g')
+       .attr('transform','translate('+(width/2)+')');      
 pattern = g.append('defs') 
     .selectAll('.pattern')
     .data( data['item'] )
@@ -115,8 +127,8 @@ g.selectAll('.row')
               .selectAll('.cell')
               .data( d3.range( ncol ) )
               .call( function(s){
-                 s.enter()
-                  .append( type['type']) //in the yaml
+                s.enter()
+                  .append( data['type']) //in the yaml
                   .classed('cell',true)
                   .attr( 'cx', function(c){
                       return (c*cwidth+cwidth/2)
@@ -131,10 +143,8 @@ g.selectAll('.row')
                     var id = pattern[ (r*ncol+c)%pattern.length ]['id'];
                     return "url("+id+")"
                   })
-                  .attr( 'fill-opacity', ".6")
-                  
-              })
-
+                  .attr( 'fill-opacity', ".6")      
+            });
         })
       
     });
@@ -180,7 +190,7 @@ g.selectAll('.row')
         if (idle = Math.abs(desiredFocus[0] - currentFocus[0]) < .5 && Math.abs(desiredFocus[1] - currentFocus[1]) < .5) 
             currentFocus = desiredFocus;
         else currentFocus[0] += (desiredFocus[0] - currentFocus[0]) * .14, currentFocus[1] += (desiredFocus[1] - currentFocus[1]) * .14;
-        g.style(transform, "translate(" + ( (width / 2 - currentFocus[0]) / nrow + (innerWidth-width)/2) + "px," + (height / 2 - currentFocus[1]) / nrow + "px)");
+        g.style(transform, "translate(" + ( (width / 2 - currentFocus[0]) / nrow - (width/2)) + "px," + (height / 2 - currentFocus[1]) / nrow + "px)");
         return idle;
       });
     }

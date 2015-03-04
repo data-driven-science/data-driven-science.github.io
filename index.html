@@ -23,18 +23,33 @@ item:
   
 var cwidth = 150,
     cheight = 150,
-    cr = cheight/2;
+    cr = cheight/2-5;
 
 var ncol = 14,
-    nrow = 6;
+    nrow = 5;
 
 var width = ncol*cwidth,
     height = 500;
-
-var shift = (innerWidth-width)/2;
+console.log( innerWidth, width)
+var shift = function(r){
+  return ((r%2)==0)?0:(cwidth/2);
+}; 
 var currentFocus = [width / 2, height / 2],
     desiredFocus,
     idle = true;
+  
+function typer( t ){
+  var shift = [];
+  if ( t == 'circle'){
+    shift = [ cwidth, cwidth];
+  } else if ( t == 'hexagon')
+    t = 'polygon';
+  return {
+    'type': t,
+    'shift': shift,
+  }
+}
+
 
 var style = document.body.style,
     transform = ("webkitTransform" in style ? "-webkit-"
@@ -44,14 +59,16 @@ var style = document.body.style,
           : "") + "transform";
   
 data = jsyaml.load( d3.select('#pattern').text() );
-  
+
+var type = typer( data['type'] );
+
 svg = d3.select('body')
     .append('svg')
     .attr('height', height)
     .attr('width', width)
     // append rows
-
-pattern = svg.append('defs') 
+g = svg.append('g');      
+pattern = g.append('defs') 
     .selectAll('.pattern')
     .data( data['item'] )
     .call( function(s){
@@ -84,14 +101,14 @@ pattern = svg.append('defs')
     }).data()
 
 
-svg.selectAll('.row')
+g.selectAll('.row')
     .data( d3.range( nrow ) )
     .call( function(s){
        s.enter()
         .append('g')
         .classed('row',true)
         .attr( 'transform', function(r){
-          return 'translate('+((r%2==0)?0:cwidth/2)+')' 
+          return 'translate('+shift(r)+','+ type['shift'][1]*(r-1) +')';
         })
         .each( function(r){
             d3.select(this)
@@ -99,16 +116,16 @@ svg.selectAll('.row')
               .data( d3.range( ncol ) )
               .call( function(s){
                  s.enter()
-                  .append( data['type']) //in the yaml
+                  .append( type['type']) //in the yaml
                   .classed('cell',true)
                   .attr( 'cx', function(c){
-                      return cwidth*(c-1)+cr;
+                      return (c*cwidth+cwidth/2)
                   })
                   .attr( 'cy', function(c){
-                      return cheight*(r-1)+cr;
+                      return cheight/2
                  })
                   .attr( 'r', function(c){
-                      return cr
+                      return cr;
                  })
                   .attr( 'fill', function(c){
                     var id = pattern[ (r*ncol+c)%pattern.length ]['id'];
@@ -160,10 +177,10 @@ svg.selectAll('.row')
   function moved() {
       if (idle) d3.timer(function() {
         
-        if (idle = Math.abs(desiredFocus[0] - currentFocus[0]) < .5 && Math.abs(desiredFocus[1] - currentFocus[1]) < .5) currentFocus = desiredFocus;
+        if (idle = Math.abs(desiredFocus[0] - currentFocus[0]) < .5 && Math.abs(desiredFocus[1] - currentFocus[1]) < .5) 
+            currentFocus = desiredFocus;
         else currentFocus[0] += (desiredFocus[0] - currentFocus[0]) * .14, currentFocus[1] += (desiredFocus[1] - currentFocus[1]) * .14;
-        console.log(currentFocus)
-        svg.style(transform, "translate(" + (width / 2 - currentFocus[0]) / nrow + "px," + (height / 2 - currentFocus[1]) / nrow + "px)");
+        g.style(transform, "translate(" + ( (width / 2 - currentFocus[0]) / nrow + (innerWidth-width)/2) + "px," + (height / 2 - currentFocus[1]) / nrow + "px)");
         return idle;
       });
     }

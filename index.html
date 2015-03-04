@@ -20,22 +20,35 @@ item:
 <script>
 ;( function(){
 //Make SVG
-var width = 600,
-    height = 400;
   
-var cwidth = 100,
-    cheight = 100,
-    cr = 50;
+var cwidth = 150,
+    cheight = 150,
+    cr = cheight/2;
 
-var ncol = 8,
-    nrow = 4;
+var ncol = 14,
+    nrow = 6;
+
+var width = ncol*cwidth,
+    height = 500;
+
+var shift = (innerWidth-width)/2;
+var currentFocus = [width / 2, height / 2],
+    desiredFocus,
+    idle = true;
+
+var style = document.body.style,
+    transform = ("webkitTransform" in style ? "-webkit-"
+          : "MozTransform" in style ? "-moz-"
+          : "msTransform" in style ? "-ms-"
+          : "OTransform" in style ? "-o-"
+          : "") + "transform";
   
 data = jsyaml.load( d3.select('#pattern').text() );
   
 svg = d3.select('body')
     .append('svg')
     .attr('height', height)
-    .attr('width', width);
+    .attr('width', width)
     // append rows
 
 pattern = svg.append('defs') 
@@ -77,6 +90,9 @@ svg.selectAll('.row')
        s.enter()
         .append('g')
         .classed('row',true)
+        .attr( 'transform', function(r){
+          return 'translate('+((r%2==0)?0:cwidth/2)+')' 
+        })
         .each( function(r){
             d3.select(this)
               .selectAll('.cell')
@@ -86,7 +102,7 @@ svg.selectAll('.row')
                   .append( data['type']) //in the yaml
                   .classed('cell',true)
                   .attr( 'cx', function(c){
-                      return cwidth*(c-1)+cr + (cr*(r%2));
+                      return cwidth*(c-1)+cr;
                   })
                   .attr( 'cy', function(c){
                       return cheight*(r-1)+cr;
@@ -122,15 +138,42 @@ svg.selectAll('.row')
     .on( 'mouseleave', function(){
       d3.select(this)
         .transition( )
-        .ease('cubic')
-        .duration( 1000 )
         .attr( 'fill-opacity',.6)
     })
     .on( 'click', function(d,i){
        // go somewhere
     })
+  
+  
+  function mousemoved() {
+    var m = d3.mouse(this);
+    console.log(m);
+
+    desiredFocus = [
+      Math.round((m[0] - width / 2) / nrow) * nrow + width / 2,
+      Math.round((m[1] - height / 2) / nrow) * nrow + height / 2
+    ];
+
+    moved();
+  }
+
+  function moved() {
+      if (idle) d3.timer(function() {
+        
+        if (idle = Math.abs(desiredFocus[0] - currentFocus[0]) < .5 && Math.abs(desiredFocus[1] - currentFocus[1]) < .5) currentFocus = desiredFocus;
+        else currentFocus[0] += (desiredFocus[0] - currentFocus[0]) * .14, currentFocus[1] += (desiredFocus[1] - currentFocus[1]) * .14;
+        console.log(currentFocus)
+        svg.style(transform, "translate(" + (width / 2 - currentFocus[0]) / nrow + "px," + (height / 2 - currentFocus[1]) / nrow + "px)");
+        return idle;
+      });
+    }
+
+  
+  svg.on('mousemove', mousemoved )
 })();
   
+  
+
 </script>
 
 </body>

@@ -29,10 +29,7 @@ var data = jsyaml.load( d3.select('#pattern').text() );
   
 var cwidth = data['cell']['width'],
     cheight = data['cell']['height'],
-    border = data['cell']['border'],
-    cr = (cwidth/2) - border, //circle
-    cr = Math.sqrt(3) * cwidth/3 - border; // hexgon
-    
+    border = data['cell']['border'];    
 
 var ncol = 14,
     nrow = 5;
@@ -51,9 +48,9 @@ function d2r(d){
   return d*(Math.PI/180);
 }
   
-function templater( t ){
+function templater( ){
   var shift = [];
-  if ( t == 'circle'){
+  if ( data['type'] == 'circle'){
    var type= 'circle',
        shift=[cwidth,Math.sqrt(3)*cheight/2],
        attr = {
@@ -63,23 +60,26 @@ function templater( t ){
                   },
          'cy': function(c){
                       return (cheight/2)
-                  }
+                  },
+         'r': (cwidth/2) - border,
        };
 
-  } else if ( t == 'hexagon')
-    t = 'polygon';
+  } else if ( data['type'] == 'hexagon'){
+    type = 'polygon';
+    var cr = Math.sqrt(3) * cwidth/3 - border;
     shift=[Math.sqrt(3)*cwidth/2,Math.sqrt(3)*cheight/2],
     attr = {
       'points': function(c){
-      return d3.range(6)
+        return d3.range(6)
                .map( function(i){ 
                     return (cr*Math.cos( d2r( i*60 + 30) ) + (c*cwidth+cwidth/2)) +','+ (cr*Math.sin( d2r( i*60+ 30) ) + cheight/2);
                   })
                   .join(' ');
       }
     };
+  }
   return {
-    'type': t,
+    'type': type,
     'shift': shift,
     'attr':attr ,
   }
@@ -95,8 +95,8 @@ var style = document.body.style,
   
 
 
-var type = templater( data['type'] );
-
+var type = templater();
+console.log(type);
 svg = d3.select('body')
     .style('overflow-x','hidden')
     .append('svg')
@@ -163,9 +163,6 @@ g.selectAll('.row')
                             .attr( kv['key'], kv['value'] );
                         })
                   })
-                  .attr( 'r', function(c){
-                        return cr;
-                   })
                   .attr( 'fill', function(c){
                     var id = pattern[ (r*ncol+c)%pattern.length ]['id'];
                     return "url("+id+")"

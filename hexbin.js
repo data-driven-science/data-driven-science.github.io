@@ -1,4 +1,6 @@
-var data = jsyaml.load( d3.select('#pattern').text() );
+---
+---
+var data = {{ site.references.hexbin | jsonify }};
   
 var cwidth = data['cell']['width'],
     cheight = data['cell']['height'],

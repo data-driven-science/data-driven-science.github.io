@@ -4,14 +4,19 @@
 <html>
   <head>
     <link type="text/css" rel="stylesheet" href="bower_components/primer-css/css/primer.css">
+    <link type="text/css" rel="stylesheet" href="bower_components/octicons/octicons/octicons.css">
     <script src='//cdn.jsdelivr.net/g/d3js'></script>    
     <style>
       .plate {
-        background: rgba(1,1,1,1);
         z-index: 1000;
-        width: 40%;
+        width: 60%;
         top: 50%;
         transform: translate(0%, 25%);
+      }
+      .plate column {
+        positive; relative;
+        top: 50%;
+        transform: translate(0%, 25%);       
       }
       hexbin svg {
         z-index: 0;
@@ -21,9 +26,21 @@
   <body>
     <hexbin></hexbin>
     <div class="plate container">
-      <div class="blankslate">
-        {% include mailchimp.html %}
+      <div class="columns">
+        <div class="column one-half">
+          <div class="blankslate spacious">
+            <h1>Visit Us on Github <br>
+              <big><span class="mega-octicon octicon-mark-github"></span></big></h1>
+            
+          </div>
+        </div>
+        <div class="column one-half">
+          <div class="blankslate">
+            {% include mailchimp.html %}
+          </div>    
+        </div>
       </div>
+      
     </div>
   </body>
   <script src="hexbin.js"></script>  

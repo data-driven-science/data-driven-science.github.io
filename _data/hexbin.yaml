@@ -1,0 +1,10 @@
+type: hexagon
+cell:
+  width: 130
+  height: 130
+  border: 5
+item:
+- url: http://software-carpentry.org #URL to website
+  img: http://software-carpentry.org/img/software-carpentry-banner.png
+- url: http://mozillascience.org
+  img: http://www.mozillascience.org/img/logo.png

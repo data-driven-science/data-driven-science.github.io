@@ -6,5 +6,5 @@ highlighter: pygments
 permalink: pretty
 
 collections:
-  cards:
+  references:
     output: true

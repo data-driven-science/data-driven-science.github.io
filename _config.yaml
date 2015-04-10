@@ -1,0 +1,10 @@
+#Change this to the name of your repo 
+baseurl: '' 
+
+markdown: kramdown
+highlighter: pygments
+permalink: pretty
+
+collections:
+  cards:
+    output: true
